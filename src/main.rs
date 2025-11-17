@@ -13,7 +13,7 @@ use crate::rspec_runner::RspecRunner;
 #[derive(Parser, Debug)]
 #[command(name = "mcp-rspec")]
 #[command(about = "Configurable RSpec runner MCP server over HTTP with SSE")]
-#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(version)]
 struct Cli {
     #[arg(short = 'H', long, default_value = "127.0.0.1")]
     hostname: String,
@@ -21,7 +21,7 @@ struct Cli {
     #[arg(short, long, default_value = "30301")]
     port: u16,
 
-    #[arg(short = 'c', long, default_value = "bundle exec rspec")]
+    #[arg(short = 'c', long, env = "RSPEC_RUNNER_COMMAND", default_value = "bundle exec rspec")]
     rspec_command: String,
 }
 
