@@ -84,15 +84,15 @@ impl ParsedFilePath {
 #[derive(Clone)]
 pub struct RspecRunner {
     tool_router: ToolRouter<RspecRunner>,
-    rspec_command: String,
+    rspec_cmd: String,
 }
 
 #[tool_router]
 impl RspecRunner {
-    pub fn new(rspec_command: String) -> Self {
+    pub fn new(rspec_cmd: String) -> Self {
         Self {
             tool_router: Self::tool_router(),
-            rspec_command,
+            rspec_cmd,
         }
     }
 
@@ -115,7 +115,7 @@ impl RspecRunner {
             }
         };
 
-        let command_parts: Vec<&str> = self.rspec_command.split_whitespace().collect();
+        let command_parts: Vec<&str> = self.rspec_cmd.split_whitespace().collect();
         let mut cmd = Command::new(command_parts[0]);
 
         // Add the rest of the command parts as arguments

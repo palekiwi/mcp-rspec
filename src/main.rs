@@ -21,8 +21,8 @@ struct Cli {
     #[arg(short, long, env = "MCP_RSPEC_PORT", default_value = "30301")]
     port: u16,
 
-    #[arg(short = 'c', long, env = "RSPEC_RUNNER_COMMAND", default_value = "bundle exec rspec")]
-    rspec_command: String,
+    #[arg(short = 'c', long, env = "RSPEC_RUNNER_CMD", default_value = "bundle exec rspec")]
+    rspec_cmd: String,
 }
 
 #[tokio::main]
@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let ct = sse_server.with_service(move || RspecRunner::new(cli.rspec_command.clone()));
+    let ct = sse_server.with_service(move || RspecRunner::new(cli.rspec_cmd.clone()));
 
     tracing::info!("MCP RSpec server is running!");
     tracing::info!("SSE endpoint: http://{}/sse", bind_address);
