@@ -22,7 +22,7 @@
           version = "0.1.0-dev";
           src = pkgs.lib.cleanSource ./.;
 
-          cargoHash = "sha256-c6iM90V7/t38qY9ZKJajwVn0/48gqeGatEIkwpkbUgw";
+          cargoHash = "sha256-TUhoARj/6LPGY7ea1CESu9pH+39ExrxoTkG/Ta8yQLk=";
 
           meta = with pkgs.lib; {
             description = "MCP for running RSpec";
