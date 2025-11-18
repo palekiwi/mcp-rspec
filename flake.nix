@@ -3,47 +3,48 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { nixpkgs, fenix, ... }:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      rustToolchain = fenix.packages.${system}.stable.toolchain;
-    in
-    {
-      packages.${system}.default = pkgs.rustPlatform.buildRustPackage {
-        pname = "mcp-rspec";
-        version = "0.1.0";
-        src = ./.;
+  outputs = { nixpkgs, fenix, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        rustToolchain = fenix.packages.${system}.stable.toolchain;
+      in
+      {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "mcp-rspec";
+          version = "0.1.0";
+          src = ./.;
 
-        cargoHash = "sha256-c6iM90V7/t38qY9ZKJajwVn0/48gqeGatEIkwpkbUgw";
+          cargoHash = "sha256-c6iM90V7/t38qY9ZKJajwVn0/48gqeGatEIkwpkbUgw";
 
-        meta = with pkgs.lib; {
-          description = "MCP for running RSpec";
-          license = licenses.mit;
-          maintainers = [ ];
+          meta = with pkgs.lib; {
+            description = "MCP for running RSpec";
+            license = licenses.mit;
+            maintainers = [ ];
+          };
         };
-      };
 
-      devShells.${system}.default = pkgs.mkShell
-        {
-          buildInputs = [
-            rustToolchain
-            pkgs.rust-analyzer
-            pkgs.cargo-expand
-            pkgs.cargo-watch
-            pkgs.cargo-edit
-          ];
+        devShells.default = pkgs.mkShell
+          {
+            buildInputs = [
+              rustToolchain
+              pkgs.rust-analyzer
+              pkgs.cargo-expand
+              pkgs.cargo-watch
+              pkgs.cargo-edit
+            ];
 
-          shellHook = ''
-            echo "Rust development environment ready!"
-            echo "Rust version: $(rustc --version)"
-          '';
-        };
-    };
+            shellHook = ''
+              echo "Rust development environment ready!"
+              echo "Rust version: $(rustc --version)"
+            '';
+          };
+      });
 }
