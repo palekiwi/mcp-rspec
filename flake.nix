@@ -20,7 +20,7 @@
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = "mcp-rspec";
           version = "0.1.0";
-          src = ./.;
+          src = pkgs.lib.cleanSource ./.;
 
           cargoHash = "sha256-c6iM90V7/t38qY9ZKJajwVn0/48gqeGatEIkwpkbUgw";
 
