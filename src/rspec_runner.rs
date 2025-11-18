@@ -123,6 +123,9 @@ impl RspecRunner {
             cmd.arg(part);
         }
 
+        // Set ouput format
+        cmd.arg("-f").arg("progress");
+
         // Build the RSpec file argument from parsed components
         let rspec_arg = if parsed_file.line_numbers.is_empty() {
             parsed_file.file_path.clone()
