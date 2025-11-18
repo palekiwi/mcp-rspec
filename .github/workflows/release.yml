@@ -12,8 +12,6 @@ jobs:
         include:
           - os: ubuntu-latest
             system: x86_64-linux
-          - os: ubuntu-latest
-            system: aarch64-linux
           - os: macos-13
             system: x86_64-darwin
           - os: macos-14
@@ -25,9 +23,6 @@ jobs:
 
     - name: Install Nix
       uses: cachix/install-nix-action@v30
-      with:
-        extra_nix_config: |
-          extra-platforms = aarch64-linux
 
     - name: Setup Cachix
       uses: cachix/cachix-action@v15
