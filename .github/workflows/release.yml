@@ -1,0 +1,46 @@
+name: Release and Cachix
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: ubuntu-latest
+            system: aarch64-linux
+          - os: macos-13
+            system: x86_64-darwin
+          - os: macos-14
+            system: aarch64-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v30
+      with:
+        extra_nix_config: |
+          extra-platforms = aarch64-linux
+
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v15
+      with:
+        name: palekiwi
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Build package
+      run: nix build .#packages.${{ matrix.system }}.default
+
+    - name: Test package (native only)
+      if: |
+        (matrix.system == 'x86_64-linux' && runner.os == 'Linux') ||
+        (matrix.system == 'x86_64-darwin' && runner.os == 'macOS' && runner.arch == 'X64') ||
+        (matrix.system == 'aarch64-darwin' && runner.os == 'macOS' && runner.arch == 'ARM64')
+      run: nix run . -- --help
