@@ -8,6 +8,7 @@ use tracing_subscriber::{
 };
 
 mod rspec_runner;
+mod file_path_parser;
 use crate::rspec_runner::RspecRunner;
 
 #[derive(Parser, Debug)]
