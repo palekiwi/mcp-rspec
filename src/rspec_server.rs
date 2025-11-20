@@ -6,12 +6,12 @@ use rmcp::{
     service::RequestContext,
     tool, tool_handler, tool_router,
 };
-use tokio::process::Command;
 
+use crate::command_runner::{CommandResult, CommandRunner, RspecRunner};
 use crate::file_path_parser::ParsedFilePath;
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
-pub struct RspecRunnerArgs {
+pub struct RspecServerArgs {
     #[schemars(
         description = "RSpec test file path (must end with '_spec.rb')",
         example = "spec/models/user_spec.rb"
@@ -26,13 +26,13 @@ pub struct RspecRunnerArgs {
 }
 
 #[derive(Clone)]
-pub struct RspecRunner {
-    tool_router: ToolRouter<RspecRunner>,
+pub struct RspecServer {
+    tool_router: ToolRouter<RspecServer>,
     rspec_cmd: String,
 }
 
 #[tool_router]
-impl RspecRunner {
+impl RspecServer {
     pub fn new(rspec_cmd: String) -> Self {
         Self {
             tool_router: Self::tool_router(),
@@ -45,7 +45,7 @@ impl RspecRunner {
     )]
     async fn run_rspec(
         &self,
-        Parameters(args): Parameters<RspecRunnerArgs>,
+        Parameters(args): Parameters<RspecServerArgs>,
     ) -> Result<CallToolResult, McpError> {
         // Parse the file path and validate format
         let line_numbers = args.line_numbers.unwrap_or_default();
@@ -59,43 +59,16 @@ impl RspecRunner {
             }
         };
 
-        let command_parts: Vec<&str> = self.rspec_cmd.split_whitespace().collect();
-        let mut cmd = Command::new(command_parts[0]);
-
-        // Add the rest of the command parts as arguments
-        for part in &command_parts[1..] {
-            cmd.arg(part);
-        }
-
-        // Set ouput format
-        cmd.arg("-f").arg("progress");
+        let runner = RspecRunner::new(self.rspec_cmd.clone());
 
         // Build the RSpec file argument from parsed components
-        let rspec_arg = if parsed_file.line_numbers.is_empty() {
-            parsed_file.file_path.clone()
-        } else {
-            format!(
-                "{}:{}",
-                parsed_file.file_path,
-                parsed_file
-                    .line_numbers
-                    .iter()
-                    .map(|n| n.to_string())
-                    .collect::<Vec<_>>()
-                    .join(":")
-            )
-        };
-        cmd.arg(&rspec_arg);
+        let rspec_arg = parsed_file.as_arg();
 
-        match cmd.output().await {
-            Ok(output) => {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let status = output.status.code().unwrap_or(-1);
-
+        match runner.run(&rspec_arg).await {
+            Ok(CommandResult { exit_code, stdout, stderr }) => {
                 let result_text = format!(
                     "Test Results for: {}\nExit Code: {}\n\nOutput:\n{}\n\nErrors:\n{}",
-                    rspec_arg, status, stdout, stderr
+                    rspec_arg, exit_code, stdout, stderr
                 );
 
                 Ok(CallToolResult::success(vec![Content::text(result_text)]))
@@ -109,7 +82,7 @@ impl RspecRunner {
 }
 
 #[tool_handler]
-impl ServerHandler for RspecRunner {
+impl ServerHandler for RspecServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
@@ -144,7 +117,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_run_rspec_tool() {
-        let router = RspecRunner::new("bundle exec rspec".to_string()).tool_router;
+        let router = RspecServer::new("bundle exec rspec".to_string()).tool_router;
 
         let tools = router.list_all();
         assert_eq!(tools.len(), 1);
@@ -161,7 +134,7 @@ mod tests {
         }
         "#;
 
-        let args: RspecRunnerArgs = serde_json::from_str(json).unwrap();
+        let args: RspecServerArgs = serde_json::from_str(json).unwrap();
         assert_eq!(args.file, "spec/models/user_spec.rb");
         assert_eq!(args.line_numbers, None);
     }
@@ -175,7 +148,7 @@ mod tests {
         }
         "#;
 
-        let args: RspecRunnerArgs = serde_json::from_str(json).unwrap();
+        let args: RspecServerArgs = serde_json::from_str(json).unwrap();
         assert_eq!(args.file, "spec/models/user_spec.rb");
         assert_eq!(args.line_numbers, Some(vec![37, 87]));
     }
