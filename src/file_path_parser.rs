@@ -29,6 +29,22 @@ impl ParsedFilePath {
         })
     }
 
+    pub fn as_arg(&self) -> String {
+        if self.line_numbers.is_empty() {
+            self.file_path.clone()
+        } else {
+            format!(
+                "{}:{}",
+                self.file_path,
+                self.line_numbers
+                    .iter()
+                    .map(|n| n.to_string())
+                    .collect::<Vec<_>>()
+                    .join(":")
+            )
+        }
+    }
+
     fn validate_file_path(path: &str) -> Result<(), String> {
         // Block dangerous characters first
         if path.contains('\0') || path.contains('\n') {
@@ -59,6 +75,18 @@ impl ParsedFilePath {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_as_args_without_line_numbers() {
+        let parsed = ParsedFilePath::from_args("spec/model/user_spec.rb", vec![]).unwrap();
+        assert_eq!(parsed.as_arg(), "spec/model/user_spec.rb");
+    }
+
+    #[test]
+    fn test_as_args_with_line_numbers() {
+        let parsed = ParsedFilePath::from_args("spec/model/user_spec.rb", vec![1, 2]).unwrap();
+        assert_eq!(parsed.as_arg(), "spec/model/user_spec.rb:1:2");
+    }
 
     #[test]
     fn test_from_args_without_line_numbers() {
