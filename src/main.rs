@@ -12,6 +12,9 @@ mod command_runner;
 mod file_path_parser;
 mod rspec_server;
 
+#[cfg(test)]
+mod mock_runner;
+
 use crate::rspec_runner::RspecRunner;
 use crate::rspec_server::RspecServer;
 

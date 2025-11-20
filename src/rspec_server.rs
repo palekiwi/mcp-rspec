@@ -112,11 +112,11 @@ impl <R: CommandRunner + Clone + 'static> ServerHandler for RspecServer<R> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rspec_runner::{RspecRunner};
+    use crate::mock_runner::MockRunner;
 
     #[tokio::test]
     async fn test_run_rspec_tool() {
-        let runner = RspecRunner::new("bundle exec rspec".to_string());
+        let runner = MockRunner::new();
         let router = RspecServer::new(runner).tool_router;
 
         let tools = router.list_all();
