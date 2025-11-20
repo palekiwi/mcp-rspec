@@ -32,6 +32,11 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
+
+    if cli.rspec_cmd.trim().is_empty() {
+        anyhow::bail!("rspec_cmd cannot be empty")
+    }
+
     let bind_address: SocketAddr = format!("{}:{}", cli.hostname, cli.port).parse()?;
 
     tracing_subscriber::registry()
