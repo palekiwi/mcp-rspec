@@ -7,7 +7,8 @@ use rmcp::{
     tool, tool_handler, tool_router,
 };
 
-use crate::command_runner::{CommandResult, CommandRunner, RspecRunner};
+use crate::command_runner::{CommandResult, CommandRunner};
+use crate::rspec_runner::{RspecRunner};
 use crate::file_path_parser::ParsedFilePath;
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]

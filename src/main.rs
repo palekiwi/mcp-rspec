@@ -7,6 +7,7 @@ use tracing_subscriber::{
     {self},
 };
 
+mod rspec_runner;
 mod command_runner;
 mod file_path_parser;
 mod rspec_server;
