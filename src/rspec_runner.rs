@@ -3,6 +3,7 @@ use tokio::process::Command;
 
 use crate::command_runner::{CommandResult, CommandRunner};
 
+#[derive(Clone)]
 pub struct RspecRunner {
     cmd: String,
     args: Vec<String>,

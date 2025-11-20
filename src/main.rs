@@ -12,6 +12,7 @@ mod command_runner;
 mod file_path_parser;
 mod rspec_server;
 
+use crate::rspec_runner::RspecRunner;
 use crate::rspec_server::RspecServer;
 
 #[derive(Parser, Debug)]
@@ -74,7 +75,8 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let ct = sse_server.with_service(move || RspecServer::new(cli.rspec_cmd.clone()));
+    let runner = RspecRunner::new(cli.rspec_cmd);
+    let ct = sse_server.with_service(move || RspecServer::new(runner.clone()));
 
     tracing::info!("MCP RSpec server is running!");
     tracing::info!("SSE endpoint: http://{}/sse", bind_address);

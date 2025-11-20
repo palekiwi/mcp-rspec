@@ -8,7 +8,6 @@ use rmcp::{
 };
 
 use crate::command_runner::{CommandResult, CommandRunner};
-use crate::rspec_runner::{RspecRunner};
 use crate::file_path_parser::ParsedFilePath;
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -27,17 +26,17 @@ pub struct RspecServerArgs {
 }
 
 #[derive(Clone)]
-pub struct RspecServer {
-    tool_router: ToolRouter<RspecServer>,
-    rspec_cmd: String,
+pub struct RspecServer<R: CommandRunner + Clone + 'static> {
+    tool_router: ToolRouter<RspecServer<R>>,
+    runner: R,
 }
 
 #[tool_router]
-impl RspecServer {
-    pub fn new(rspec_cmd: String) -> Self {
+impl <R: CommandRunner + Clone + 'static> RspecServer<R> {
+    pub fn new(runner: R) -> Self {
         Self {
             tool_router: Self::tool_router(),
-            rspec_cmd,
+            runner,
         }
     }
 
@@ -60,12 +59,10 @@ impl RspecServer {
             }
         };
 
-        let runner = RspecRunner::new(self.rspec_cmd.clone());
-
         // Build the RSpec file argument from parsed components
         let rspec_arg = parsed_file.as_arg();
 
-        match runner.run(&rspec_arg).await {
+        match self.runner.run(&rspec_arg).await {
             Ok(CommandResult { exit_code, stdout, stderr }) => {
                 let result_text = format!(
                     "Test Results for: {}\nExit Code: {}\n\nOutput:\n{}\n\nErrors:\n{}",
@@ -83,7 +80,7 @@ impl RspecServer {
 }
 
 #[tool_handler]
-impl ServerHandler for RspecServer {
+impl <R: CommandRunner + Clone + 'static> ServerHandler for RspecServer<R> {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
@@ -115,10 +112,12 @@ impl ServerHandler for RspecServer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rspec_runner::{RspecRunner};
 
     #[tokio::test]
     async fn test_run_rspec_tool() {
-        let router = RspecServer::new("bundle exec rspec".to_string()).tool_router;
+        let runner = RspecRunner::new("bundle exec rspec".to_string());
+        let router = RspecServer::new(runner).tool_router;
 
         let tools = router.list_all();
         assert_eq!(tools.len(), 1);
