@@ -8,7 +8,15 @@ use tracing_subscriber::{
 };
 
 mod rspec_runner;
+mod command_runner;
+mod file_path_parser;
+mod rspec_server;
+
+#[cfg(test)]
+mod mock_runner;
+
 use crate::rspec_runner::RspecRunner;
+use crate::rspec_server::RspecServer;
 
 #[derive(Parser, Debug)]
 #[command(name = "mcp-rspec")]
@@ -28,6 +36,11 @@ struct Cli {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
+
+    if cli.rspec_cmd.trim().is_empty() {
+        anyhow::bail!("rspec_cmd cannot be empty")
+    }
+
     let bind_address: SocketAddr = format!("{}:{}", cli.hostname, cli.port).parse()?;
 
     tracing_subscriber::registry()
@@ -65,7 +78,8 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let ct = sse_server.with_service(move || RspecRunner::new(cli.rspec_cmd.clone()));
+    let runner = RspecRunner::new(cli.rspec_cmd);
+    let ct = sse_server.with_service(move || RspecServer::new(runner.clone()));
 
     tracing::info!("MCP RSpec server is running!");
     tracing::info!("SSE endpoint: http://{}/sse", bind_address);
