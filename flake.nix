@@ -1,6 +1,11 @@
 {
   description = "A flake for mcp-rspec";
 
+  nixConfig = {
+    extra-substituters = [ "https://palekiwi.cachix.org" ];
+    extra-trusted-public-keys = [ "palekiwi.cachix.org-1:/S23j64quRTMpe+zteCPAd0p8fczVTWzOpV5mFoFOg8=" ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
