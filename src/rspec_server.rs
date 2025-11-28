@@ -13,7 +13,7 @@ use crate::file_path_parser::ParsedFilePath;
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct RspecServerArgs {
     #[schemars(
-        description = "RSpec test file path (must end with '_spec.rb')",
+        description = "RSpec test file path (must be relative to project root and end with '_spec.rb')",
         example = "spec/models/user_spec.rb"
     )]
     pub file: String,
@@ -41,7 +41,7 @@ impl <R: CommandRunner + Clone + 'static> RspecServer<R> {
     }
 
     #[tool(
-        description = "Run RSpec tests for a specific file with optional line number targeting. Accepts file paths ending in '_spec.rb' with optional array of line numbers"
+        description = "Run RSpec tests for a specific file with optional line number targeting. Accepts file paths relative to project root, ending in '_spec.rb' with optional array of line numbers"
     )]
     async fn run_rspec(
         &self,
