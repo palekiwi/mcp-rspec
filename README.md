@@ -52,7 +52,7 @@ MCP_RSPEC_HOSTNAME=0.0.0.0 MCP_RSPEC_PORT=8080 RSPEC_RUNNER_CMD="bundle exec rsp
 Run RSpec tests for a specific file with optional line number targeting.
 
 **Parameters:**
-- `file` (string, required): RSpec test file path (must end with `_spec.rb`)
+- `file` (string, required): RSpec test file path relative to project root (must end with `_spec.rb`)
 - `line_numbers` (array, optional): Line numbers to target specific tests
 
 **Examples:**
